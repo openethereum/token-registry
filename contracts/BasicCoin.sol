@@ -4,6 +4,8 @@
 
 pragma solidity ^0.4.1;
 
+import "Owned.sol";
+
 // ECR20 standard token interface
 contract Token {
 	event Transfer(address indexed from, address indexed to, uint256 value);
@@ -14,23 +16,6 @@ contract Token {
 	function transferFrom(address _from, address _to, uint256 _value) returns (bool success);
 	function approve(address _spender, uint256 _value) returns (bool success);
 	function allowance(address _owner, address _spender) constant returns (uint256 remaining);
-}
-
-// Owner-specific contract interface
-contract Owned {
-	event NewOwner(address indexed old, address indexed current);
-
-	modifier only_owner {
-		if (msg.sender != owner) throw;
-		_;
-	}
-
-	address public owner = msg.sender;
-
-	function setOwner(address _new) only_owner {
-		NewOwner(owner, _new);
-		owner = _new;
-	}
 }
 
 // TokenReg interface
