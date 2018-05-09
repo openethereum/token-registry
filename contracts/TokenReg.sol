@@ -144,7 +144,11 @@ contract TokenReg is Owned {
 		owner = t.owner;
 	}
 
-	function fromAddress(address _addr) whenToken(mapFromAddress[_addr] - 1) view public returns (uint id, string tla, uint base, string name, address owner) {
+	function fromAddress(address _addr)
+		whenToken(mapFromAddress[_addr] - 1)
+		view public
+		returns (uint id, string tla, uint base, string name, address owner)
+	{
 		id = mapFromAddress[_addr] - 1;
 		Token storage t = tokens[id];
 		tla = t.tla;
@@ -153,7 +157,11 @@ contract TokenReg is Owned {
 		owner = t.owner;
 	}
 
-	function fromTLA(string _tla) whenToken(mapFromTLA[_tla] - 1) view public returns (uint id, address addr, uint base, string name, address owner) {
+	function fromTLA(string _tla)
+		whenToken(mapFromTLA[_tla] - 1)
+		view public
+		returns (uint id, address addr, uint base, string name, address owner)
+	{
 		id = mapFromTLA[_tla] - 1;
 		Token storage t = tokens[id];
 		addr = t.addr;
