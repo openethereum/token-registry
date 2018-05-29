@@ -20,7 +20,6 @@ import "./Owned.sol";
 import "./Token.sol";
 import "./TokenReg.sol";
 
-
 // BasicCoin, ECR20 tokens that all belong to the owner for sending around
 contract BasicCoin is Owned, Token {
 	// this is as basic as can be, only the associated balance & allowances
@@ -28,6 +27,15 @@ contract BasicCoin is Owned, Token {
 		uint balance;
 		mapping (address => uint) allowanceOf;
 	}
+
+	// the base, tokens denoted in micros
+	uint constant public BASE = 1000000;
+
+	// available token supply
+	uint public totalSupply;
+
+	// storage and mapping of all balances & allowances
+	mapping (address => Account) accounts;
 
 	// the balance should be available
 	modifier whenOwns(address _owner, uint _amount) {
@@ -52,15 +60,6 @@ contract BasicCoin is Owned, Token {
 		require(_value > 0);
 		_;
 	}
-
-	// the base, tokens denoted in micros
-	uint constant public BASE = 1000000;
-
-	// available token supply
-	uint public totalSupply;
-
-	// storage and mapping of all balances & allowances
-	mapping (address => Account) accounts;
 
 	// constructor sets the parameters of execution, _totalSupply is all units
 	constructor(uint _totalSupply, address _owner) whenNonZero(_totalSupply) public {
