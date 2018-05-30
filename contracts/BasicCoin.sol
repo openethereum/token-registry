@@ -62,7 +62,10 @@ contract BasicCoin is Owned, Token {
 	}
 
 	// constructor sets the parameters of execution, _totalSupply is all units
-	constructor(uint _totalSupply, address _owner) whenNonZero(_totalSupply) public {
+	constructor(uint _totalSupply, address _owner)
+		public
+		whenNonZero(_totalSupply)
+	{
 		// Non payable function. No need to check msg.value.
 
 		totalSupply = _totalSupply;
@@ -76,12 +79,21 @@ contract BasicCoin is Owned, Token {
 	}
 
 	// balance of a specific address
-	function balanceOf(address _who) view public returns (uint256) {
+	function balanceOf(address _who)
+		public
+		view
+		returns (uint256)
+	{
 		return accounts[_who].balance;
 	}
 
 	// transfer
-	function transfer(address _to, uint256 _value) whenNoEth whenOwns(msg.sender, _value) public returns (bool) {
+	function transfer(address _to, uint256 _value)
+		public
+		whenNoEth
+		whenOwns(msg.sender, _value)
+		returns (bool)
+	{
 		emit Transfer(msg.sender, _to, _value);
 		accounts[msg.sender].balance -= _value;
 		accounts[_to].balance += _value;
@@ -91,10 +103,10 @@ contract BasicCoin is Owned, Token {
 
 	// transfer via allowance
 	function transferFrom(address _from, address _to, uint256 _value)
+		public
 		whenNoEth
 		whenOwns(_from, _value)
 		whenHasAllowance(_from, msg.sender, _value)
-		public
 		returns (bool)
 	{
 		emit Transfer(_from, _to, _value);
@@ -106,7 +118,11 @@ contract BasicCoin is Owned, Token {
 	}
 
 	// approve allowances
-	function approve(address _spender, uint256 _value) whenNoEth public returns (bool) {
+	function approve(address _spender, uint256 _value)
+		public
+		whenNoEth
+		returns (bool)
+	{
 		emit Approval(msg.sender, _spender, _value);
 		accounts[msg.sender].allowanceOf[_spender] += _value;
 
@@ -114,7 +130,11 @@ contract BasicCoin is Owned, Token {
 	}
 
 	// available allowance
-	function allowance(address _owner, address _spender) view public returns (uint256) {
+	function allowance(address _owner, address _spender)
+		public
+		view
+		returns (uint256)
+	{
 		return accounts[_owner].allowanceOf[_spender];
 	}
 }
@@ -142,36 +162,49 @@ contract BasicCoinManager is Owned {
 	uint constant public BASE = 1000000;
 
 	// return the number of deployed
-	function count() view public returns (uint) {
+	function count()
+		public
+		view
+		returns (uint)
+	{
 		return coins.length;
 	}
 
 	// get a specific deployment
-	function get(uint _index) view public returns (address coin, address owner, address tokenreg) {
+	function get(uint _index)
+		public
+		view
+		returns (address coin, address owner, address tokenreg)
+	{
 		Coin storage c = coins[_index];
-
 		coin = c.coin;
 		owner = c.owner;
 		tokenreg = c.tokenreg;
 	}
 
 	// returns the number of coins for a specific owner
-	function countByOwner(address _owner) view public returns (uint) {
+	function countByOwner(address _owner)
+		public
+		view
+		returns (uint)
+	{
 		return ownedCoins[_owner].length;
 	}
 
 	// returns a specific index by owner
-	function getByOwner(address _owner, uint _index) view public returns (address coin, address owner, address tokenreg) {
+	function getByOwner(address _owner, uint _index)
+		public
+		view
+		returns (address coin, address owner, address tokenreg)
+	{
 		return get(ownedCoins[_owner][_index]);
 	}
 
 	// deploy a new BasicCoin on the blockchain
-	function deploy(
-		uint _totalSupply,
-		string _tla,
-		string _name,
-		address _tokenreg)
-		payable public returns (bool)
+	function deploy(uint _totalSupply, string _tla, string _name, address _tokenreg)
+		public
+		payable
+		returns (bool)
 	{
 		TokenReg tokenreg = TokenReg(_tokenreg);
 		BasicCoin coin = new BasicCoin(_totalSupply, msg.sender);
@@ -182,12 +215,7 @@ contract BasicCoinManager is Owned {
 		ownedCoins[msg.sender].length = ownerCount + 1;
 		ownedCoins[msg.sender][ownerCount] = coins.length;
 		coins.push(Coin(coin, msg.sender, tokenreg));
-		tokenreg.registerAs.value(fee)(
-			coin,
-			_tla,
-			BASE,
-			_name,
-			msg.sender);
+		tokenreg.registerAs.value(fee)(coin, _tla, BASE, _name, msg.sender);
 
 		emit Created(msg.sender, tokenreg, coin);
 
@@ -195,7 +223,10 @@ contract BasicCoinManager is Owned {
 	}
 
 	// owner can withdraw all collected funds
-	function drain() onlyOwner public {
+	function drain()
+		public
+		onlyOwner
+	{
 		msg.sender.transfer(address(this).balance);
 	}
 }
