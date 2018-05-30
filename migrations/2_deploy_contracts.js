@@ -1,8 +1,9 @@
 "use strict";
 
-const TokenReg = artifacts.require("./TokenReg.sol");
+const BasicCoinManager = artifacts.require("BasicCoinManager");
+const TokenReg = artifacts.require("TokenReg");
 
 module.exports = deployer => {
-  deployer.deploy(TokenReg);
+  deployer.deploy([TokenReg, BasicCoinManager]);
 };
 

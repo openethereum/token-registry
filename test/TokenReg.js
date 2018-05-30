@@ -1,6 +1,6 @@
 "use strict";
 
-const TokenReg = artifacts.require("./TokenReg.sol");
+const TokenReg = artifacts.require("TokenReg");
 
 contract("TokenReg", accounts => {
 
@@ -10,11 +10,13 @@ contract("TokenReg", accounts => {
     assert.equal(0, result);
   });
 
+
   it("should not register without paid fee", async () => {
     const token_reg = await TokenReg.deployed();
     let result = await token_reg.register.call(accounts[0], "abc", 10, "name");
     assert.isFalse(result);
   });
+
 
   it("should allow registering a token", async () => {
     const token_reg = await TokenReg.deployed();
@@ -89,6 +91,7 @@ contract("TokenReg", accounts => {
     assert.notEqual(empty_token.name, "name");
   });
 
+
   it("should allow registering a token only once per address", async () => {
     const token_reg = await TokenReg.deployed();
     const watcher_registered = token_reg.Registered();
@@ -103,6 +106,7 @@ contract("TokenReg", accounts => {
     let events_reg2 = await watcher_registered.get();
     assert.equal(events_reg2.length, 0);
   });
+
 
   it("should allow registering a token only once per TLA", async () => {
     const token_reg = await TokenReg.deployed();
@@ -123,6 +127,7 @@ contract("TokenReg", accounts => {
     assert.equal(events_reg3.length, 0);
   });
 
+
   it("should not allow registering a token with invalid TLA", async () => {
     const token_reg = await TokenReg.deployed();
     const watcher_registered = token_reg.Registered();
@@ -133,6 +138,7 @@ contract("TokenReg", accounts => {
     let events_reg1 = await watcher_registered.get();
     assert.equal(events_reg1.length, 0);
   });
+
 
   it("checks for token ownership", async () => {
     const token_reg = await TokenReg.deployed();
@@ -151,6 +157,7 @@ contract("TokenReg", accounts => {
     let value = await token_reg.meta(token_id, "k");
     assert.notEqual(web3.toAscii(value)[0], "v");
   });
+
 
   it("can set different fee price", async () => {
     const token_reg = await TokenReg.deployed();
