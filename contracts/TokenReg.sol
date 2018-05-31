@@ -18,7 +18,6 @@ pragma solidity ^0.4.0;
 
 import "./Owned.sol";
 
-
 contract TokenReg is Owned {
 	struct Token {
 		address addr;
@@ -29,6 +28,16 @@ contract TokenReg is Owned {
 		bool deleted;
 		mapping (bytes32 => bytes32) meta;
 	}
+
+	event Registered(string indexed tla, uint indexed id, address addr, string name);
+	event Unregistered(string indexed tla, uint indexed id);
+	event MetaChanged(uint indexed id, bytes32 indexed key, bytes32 value);
+
+	mapping (address => uint) mapFromAddress;
+	mapping (string => uint) mapFromTLA;
+	Token[] tokens;
+	uint public fee = 1 ether;
+	uint public tokenCount = 0;
 
 	modifier whenFeePaid {
 		if (msg.value < fee)
@@ -71,59 +80,36 @@ contract TokenReg is Owned {
 		_;
 	}
 
-	event Registered(string indexed tla, uint indexed id, address addr, string name);
-	event Unregistered(string indexed tla, uint indexed id);
-	event MetaChanged(uint indexed id, bytes32 indexed key, bytes32 value);
-
-	function register(
-		address _addr,
-		string _tla,
-		uint _base,
-		string _name)
-		payable
+	function register(address _addr, string _tla, uint _base, string _name)
 		public
+		payable
 		returns (bool)
 	{
-		return registerAs(
-			_addr,
-			_tla,
-			_base,
-			_name,
-			msg.sender);
+		return registerAs(_addr, _tla, _base, _name, msg.sender);
 	}
 
-	function registerAs(
-		address _addr,
-		string _tla,
-		uint _base,
-		string _name,
-		address _owner)
+	function registerAs(address _addr, string _tla, uint _base, string _name, address _owner)
+		public
 		payable
 		whenFeePaid
 		whenAddressFree(_addr)
 		whenIsTla(_tla)
 		whenTlaFree(_tla)
-		public returns (bool)
+		returns (bool)
 	{
-		tokens.push(Token(
-			_addr,
-			_tla,
-			_base,
-			_name,
-			_owner,
-			false));
+		tokens.push(Token(_addr, _tla, _base, _name, _owner, false));
 		mapFromAddress[_addr] = tokens.length;
 		mapFromTLA[_tla] = tokens.length;
-		emit Registered(
-			_tla,
-			tokens.length - 1,
-			_addr,
-			_name);
+		emit Registered(_tla, tokens.length - 1, _addr, _name);
 		tokenCount = tokenCount + 1;
 		return true;
 	}
 
-	function unregister(uint _id) whenToken(_id) onlyOwner public {
+	function unregister(uint _id)
+		public
+		whenToken(_id)
+		onlyOwner
+	{
 		emit Unregistered(tokens[_id].tla, _id);
 		delete mapFromAddress[tokens[_id].addr];
 		delete mapFromTLA[tokens[_id].tla];
@@ -131,11 +117,19 @@ contract TokenReg is Owned {
 		tokenCount = tokenCount - 1;
 	}
 
-	function setFee(uint _fee) onlyOwner public {
+	function setFee(uint _fee)
+		public
+		onlyOwner
+	{
 		fee = _fee;
 	}
 
-	function token(uint _id) whenToken(_id) view public returns (address addr, string tla, uint base, string name, address owner) {
+	function token(uint _id)
+		public
+		whenToken(_id)
+		view
+		returns (address addr, string tla, uint base, string name, address owner)
+	{
 		Token storage t = tokens[_id];
 		addr = t.addr;
 		tla = t.tla;
@@ -145,8 +139,9 @@ contract TokenReg is Owned {
 	}
 
 	function fromAddress(address _addr)
+		public
 		whenToken(mapFromAddress[_addr] - 1)
-		view public
+		view
 		returns (uint id, string tla, uint base, string name, address owner)
 	{
 		id = mapFromAddress[_addr] - 1;
@@ -158,8 +153,9 @@ contract TokenReg is Owned {
 	}
 
 	function fromTLA(string _tla)
+		public
 		whenToken(mapFromTLA[_tla] - 1)
-		view public
+		view
 		returns (uint id, address addr, uint base, string name, address owner)
 	{
 		id = mapFromTLA[_tla] - 1;
@@ -170,22 +166,28 @@ contract TokenReg is Owned {
 		owner = t.owner;
 	}
 
-	function meta(uint _id, bytes32 _key) whenToken(_id) view public returns (bytes32) {
+	function meta(uint _id, bytes32 _key)
+		public
+		whenToken(_id)
+		view
+		returns (bytes32)
+	{
 		return tokens[_id].meta[_key];
 	}
 
-	function setMeta(uint _id, bytes32 _key, bytes32 _value) whenToken(_id) onlyTokenOwner(_id) public {
+	function setMeta(uint _id, bytes32 _key, bytes32 _value)
+		whenToken(_id)
+		onlyTokenOwner(_id)
+		public
+	{
 		tokens[_id].meta[_key] = _value;
 		emit MetaChanged(_id, _key, _value);
 	}
 
-	function drain() onlyOwner public {
+	function drain()
+		public
+		onlyOwner
+	{
 		msg.sender.transfer(address(this).balance);
 	}
-
-	mapping (address => uint) mapFromAddress;
-	mapping (string => uint) mapFromTLA;
-	Token[] tokens;
-	uint public fee = 1 ether;
-	uint public tokenCount = 0;
 }
