@@ -29,8 +29,8 @@ contract TokenReg is Owned {
 		mapping (bytes32 => bytes32) meta;
 	}
 
-	event Registered(string indexed tla, uint indexed id, address addr, string name);
-	event Unregistered(string indexed tla, uint indexed id);
+	event Registered(string tla, uint indexed id, address addr, string name);
+	event Unregistered(string tla, uint indexed id);
 	event MetaChanged(uint indexed id, bytes32 indexed key, bytes32 value);
 
 	mapping (address => uint) mapFromAddress;
