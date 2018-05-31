@@ -82,13 +82,18 @@ contract("TokenReg", accounts => {
     let events_unreg = await watcher_unregistered.get();
     assert.equal(events_unreg.length, 1);
 
-    // token count never decreases, i.e. is still 1
-    assert.equal(await token_reg.tokenCount(), 1);
+    // now token count has decreased by 1
+    let count2 = await token_reg.tokenCount();
+    assert.equal(count2.toNumber(), 0);
 
     // id no longer maps to our token
-    let empty_token = await token_reg.token(token_id);
-    assert.notEqual(empty_token.addr, accounts[0]);
-    assert.notEqual(empty_token.name, "name");
+    exception_caught = false;
+    try {
+      await token_reg.token(token_id);
+    } catch (_) {
+      exception_caught = true;
+    }
+    assert(exception_caught);
   });
 
 
