@@ -75,7 +75,7 @@ contract("TokenReg", accounts => {
     } catch (_) {
       exception_caught = true;
     }
-    assert.isTrue(exception_caught);
+    assert(exception_caught);
 
     // owner can unregister tokens
     await token_reg.unregister(token_id);
@@ -166,6 +166,26 @@ contract("TokenReg", accounts => {
     await token_reg.setFee(web3.toWei("2", "ether"));
     let new_fee = await token_reg.fee();
     assert.equal(web3.toWei("2", "ether"), new_fee.toNumber());
+  });
+
+
+  it("allows the owner to drain the token registry", async () => {
+    const token_reg = await TokenReg.deployed();
+
+    // if not owner of the token registry, we can not drain the ether
+    let exception_caught = false;
+    try {
+      await token_reg.drain({ from: accounts[9] });
+    } catch (_) {
+      exception_caught = true;
+    }
+    assert(exception_caught);
+
+    let balance1 = web3.eth.getBalance(accounts[0]);
+    await token_reg.drain({ from: accounts[0] });
+
+    let balance2 = web3.eth.getBalance(accounts[0]);
+    assert(balance2.gte(balance1.plus(web3.toBigNumber(web3.toWei("0.99", "ether")))));
   });
 
 });
