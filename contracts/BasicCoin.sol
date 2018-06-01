@@ -49,12 +49,6 @@ contract BasicCoin is Owned, Token {
 		_;
 	}
 
-	// no ETH should be sent with the transaction
-	modifier whenNoEth {
-		require(msg.value == 0);
-		_;
-	}
-
 	// a value should be > 0
 	modifier whenNonZero(uint _value) {
 		require(_value > 0);
@@ -85,7 +79,6 @@ contract BasicCoin is Owned, Token {
 	// transfer
 	function transfer(address _to, uint256 _value)
 		public
-		whenNoEth
 		whenOwns(msg.sender, _value)
 		returns (bool)
 	{
@@ -99,7 +92,6 @@ contract BasicCoin is Owned, Token {
 	// transfer via allowance
 	function transferFrom(address _from, address _to, uint256 _value)
 		public
-		whenNoEth
 		whenOwns(_from, _value)
 		whenHasAllowance(_from, msg.sender, _value)
 		returns (bool)
@@ -115,7 +107,6 @@ contract BasicCoin is Owned, Token {
 	// approve allowances
 	function approve(address _spender, uint256 _value)
 		public
-		whenNoEth
 		returns (bool)
 	{
 		emit Approval(msg.sender, _spender, _value);
