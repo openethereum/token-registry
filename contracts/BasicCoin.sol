@@ -20,6 +20,7 @@ import "./Owned.sol";
 import "./Token.sol";
 import "./TokenReg.sol";
 
+
 // BasicCoin, ECR20 tokens that all belong to the owner for sending around
 contract BasicCoin is Owned, Token {
 	// this is as basic as can be, only the associated balance & allowances
@@ -187,7 +188,12 @@ contract BasicCoinManager is Owned {
 	}
 
 	// deploy a new BasicCoin on the blockchain
-	function deploy(uint _totalSupply, string _tla, string _name, address _tokenreg)
+	function deploy(
+		uint _totalSupply,
+		string _tla,
+		string _name,
+		address _tokenreg
+	)
 		public
 		payable
 		returns (bool)
@@ -201,7 +207,14 @@ contract BasicCoinManager is Owned {
 		ownedCoins[msg.sender].length = ownerCount + 1;
 		ownedCoins[msg.sender][ownerCount] = coins.length;
 		coins.push(Coin(coin, msg.sender, tokenreg));
-		tokenreg.registerAs.value(fee)(coin, _tla, BASE, _name, msg.sender);
+
+		tokenreg.registerAs.value(fee)(
+			coin,
+			_tla,
+			BASE,
+			_name,
+			msg.sender
+		);
 
 		emit Created(msg.sender, tokenreg, coin);
 

@@ -18,6 +18,7 @@ pragma solidity ^0.4.0;
 
 import "./Owned.sol";
 
+
 contract TokenReg is Owned {
 	struct Token {
 		address addr;
@@ -74,15 +75,32 @@ contract TokenReg is Owned {
 		_;
 	}
 
-	function register(address _addr, string _tla, uint _base, string _name)
+	function register(
+		address _addr,
+		string _tla,
+		uint _base,
+		string _name
+	)
 		public
 		payable
 		returns (bool)
 	{
-		return registerAs(_addr, _tla, _base, _name, msg.sender);
+		return registerAs(
+			_addr,
+			_tla,
+			_base,
+			_name,
+			msg.sender
+		);
 	}
 
-	function registerAs(address _addr, string _tla, uint _base, string _name, address _owner)
+	function registerAs(
+		address _addr,
+		string _tla,
+		uint _base,
+		string _name,
+		address _owner
+	)
 		public
 		payable
 		whenFeePaid
@@ -91,10 +109,25 @@ contract TokenReg is Owned {
 		whenTlaFree(_tla)
 		returns (bool)
 	{
-		tokens.push(Token(_addr, _tla, _base, _name, _owner, false));
+		tokens.push(Token(
+			_addr,
+			_tla,
+			_base,
+			_name,
+			_owner,
+			false
+		));
+
 		mapFromAddress[_addr] = tokens.length;
 		mapFromTLA[_tla] = tokens.length;
-		emit Registered(_tla, tokens.length - 1, _addr, _name);
+
+		emit Registered(
+			_tla,
+			tokens.length - 1,
+			_addr,
+			_name
+		);
+
 		tokenCount = tokenCount + 1;
 		return true;
 	}
