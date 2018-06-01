@@ -1,5 +1,7 @@
 "use strict";
 
+const { assertThrowsAsync } = require("./utils.js");
+
 const TokenReg = artifacts.require("TokenReg");
 const BasicCoin = artifacts.require("BasicCoin");
 const BasicCoinManager = artifacts.require("BasicCoinManager");
@@ -56,23 +58,15 @@ contract("BasicCoin", accounts => {
     assert.equal(1, await coin.balanceOf(accounts[5]));
 
     // but not more than the owner has
-    let transfer_exception = false;
-    try {
-      await coin.transferFrom(accounts[0], accounts[5], 20, { from: accounts[3] });
-    } catch (_) {
-      transfer_exception = true;
-    }
-    assert(transfer_exception);
+    await assertThrowsAsync(
+      () => coin.transferFrom(accounts[0], accounts[5], 20, { from: accounts[3] }),
+      "revert",
+    );
 
     // we can not transfer when we don't have an allowance
-    transfer_exception = false;
-    try {
-      await coin.transferFrom(accounts[0], accounts[5], 20, { from: accounts[9] });
-    } catch (_) {
-      transfer_exception = true;
-    }
-    assert(transfer_exception);
+    await assertThrowsAsync(
+      () => coin.transferFrom(accounts[0], accounts[5], 20, { from: accounts[9] }),
+      "revert",
+    );
   });
-
 });
-

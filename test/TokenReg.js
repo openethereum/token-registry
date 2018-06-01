@@ -1,5 +1,7 @@
 "use strict";
 
+const { assertThrowsAsync } = require("./utils.js");
+
 const TokenReg = artifacts.require("TokenReg");
 
 contract("TokenReg", accounts => {
@@ -69,13 +71,10 @@ contract("TokenReg", accounts => {
 
     // no one but the owner can unregister tokens
     let impersonator = { from: accounts[7] };
-    let exception_caught = false;
-    try {
-      await token_reg.unregister(token_id, impersonator);
-    } catch (_) {
-      exception_caught = true;
-    }
-    assert(exception_caught);
+    await assertThrowsAsync(
+      () => token_reg.unregister(token_id, impersonator),
+      "revert",
+    );
 
     // owner can unregister tokens
     await token_reg.unregister(token_id);
@@ -87,13 +86,10 @@ contract("TokenReg", accounts => {
     assert.equal(count2.toNumber(), 0);
 
     // id no longer maps to our token
-    exception_caught = false;
-    try {
-      await token_reg.token(token_id);
-    } catch (_) {
-      exception_caught = true;
-    }
-    assert(exception_caught);
+    await assertThrowsAsync(
+      () => token_reg.token(token_id),
+      "revert",
+    );
   });
 
 
@@ -178,13 +174,10 @@ contract("TokenReg", accounts => {
     const token_reg = await TokenReg.deployed();
 
     // if not owner of the token registry, we can not drain the ether
-    let exception_caught = false;
-    try {
-      await token_reg.drain({ from: accounts[9] });
-    } catch (_) {
-      exception_caught = true;
-    }
-    assert(exception_caught);
+    await assertThrowsAsync(
+      () => token_reg.drain({ from: accounts[9] }),
+      "revert",
+    );
 
     let balance1 = web3.eth.getBalance(accounts[0]);
     await token_reg.drain({ from: accounts[0] });
@@ -192,6 +185,4 @@ contract("TokenReg", accounts => {
     let balance2 = web3.eth.getBalance(accounts[0]);
     assert(balance2.gte(balance1.plus(web3.toBigNumber(web3.toWei("0.99", "ether")))));
   });
-
 });
-

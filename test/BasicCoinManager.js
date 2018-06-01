@@ -1,5 +1,7 @@
 "use strict";
 
+const { assertThrowsAsync } = require("./utils.js");
+
 const TokenReg = artifacts.require("TokenReg");
 const BasicCoin = artifacts.require("BasicCoin");
 const BasicCoinManager = artifacts.require("BasicCoinManager");
@@ -55,13 +57,10 @@ contract("BasicCoinManager", accounts => {
     await coin_manager.deploy(10, "hdl", "coin1", token_reg.address, fee);
 
     // if not owner of the coin manager, we can not drain the ether
-    let exception_caught = false;
-    try {
-      await coin_manager.drain({ from: accounts[9] });
-    } catch (_) {
-      exception_caught = true;
-    }
-    assert(exception_caught);
+    await assertThrowsAsync(
+      () => coin_manager.drain({ from: accounts[9] }),
+      "revert",
+    );
 
     let balance1 = web3.eth.getBalance(accounts[0]);
     await coin_manager.drain({ from: accounts[0] });
@@ -69,6 +68,4 @@ contract("BasicCoinManager", accounts => {
     let balance2 = web3.eth.getBalance(accounts[8]);
     assert(balance2.gte(balance1.plus(web3.toBigNumber(web3.toWei("0.99", "ether")))));
   });
-
 });
-
