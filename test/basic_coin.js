@@ -4,30 +4,44 @@ const { assertThrowsAsync } = require("./utils.js");
 
 const TokenReg = artifacts.require("TokenReg");
 const BasicCoin = artifacts.require("BasicCoin");
-const BasicCoinManager = artifacts.require("BasicCoinManager");
 
 contract("BasicCoin", accounts => {
 
-  it("maintains invariants", async () => {
-    const token_reg = await TokenReg.deployed();
-    const coin_manager = await BasicCoinManager.deployed();
-    const watcher_created = coin_manager.Created();
+  let _basicCoin;
+  const basicCoin = async () => {
+    if (_basicCoin === undefined) {
+      _basicCoin = await BasicCoin.new(10, accounts[0]);
+    }
 
-    let fee = { value: web3.toWei("1", "ether") };
-    await coin_manager.deploy(10, "yyy", "coin", token_reg.address, fee);
+    return _basicCoin;
+  };
 
-    let events_created = await watcher_created.get();
-    assert.equal(events_created.length, 1);
-    assert.equal(events_created[0].args.owner, accounts[0]);
+  it("can be deployed with configurable total supply", async () => {
+    const coin = await basicCoin();
 
-    let coin = await BasicCoin.at(events_created[0].args.coin);
-    const watcher_approval = coin.Approval();
+    // coin has an owner
+    const owner = await coin.owner();
+    assert.equal(owner, accounts[0]);
 
     // the coin's total supply matches the one at construction
-    assert.equal(10, await coin.totalSupply());
+    const totalSupply = await coin.totalSupply();
+    assert.equal(totalSupply, 10);
 
     // the total supply is the owner's balance
-    assert.equal(10, await coin.balanceOf(accounts[0]));
+    const balance = await coin.balanceOf(accounts[0]);
+    assert.equal(balance, 10);
+
+    // total supply must be non-zero
+    await assertThrowsAsync(
+      () => BasicCoin.new(0, accounts[0]),
+      "revert",
+    );
+  });
+
+
+  it("allows transfering coins", async () => {
+    const coin = await basicCoin();
+    const watcher = coin.Transfer();
 
     // transferring a coin properly adjusts the balance
     assert.equal(0, await coin.balanceOf(accounts[1]));
@@ -35,21 +49,50 @@ contract("BasicCoin", accounts => {
     assert.equal(1, await coin.balanceOf(accounts[1]));
     assert.equal(9, await coin.balanceOf(accounts[0]));
 
-    // we can approve and allowance
+    // it should emit a `Transfer` event
+    const events = await watcher.get();
+
+    assert.equal(events.length, 1);
+    assert.equal(events[0].args.from, accounts[0]);
+    assert.equal(events[0].args.to, accounts[1]);
+    assert.equal(events[0].args.value, 1);
+
+    // validates required balance for transfer
+    await assertThrowsAsync(
+      () => coin.transfer(accounts[1], 1000),
+      "revert",
+    );
+  });
+
+  it("allows setting an allowance per address", async () => {
+    const coin = await basicCoin();
+    const watcher = coin.Approval();
+
+    // we can approve an allowance
     await coin.approve(accounts[2], 50);
-    let events_approvals = await watcher_approval.get();
-    assert.equal(events_approvals[0].args.owner, accounts[0]);
-    assert.equal(events_approvals[0].args.spender, accounts[2]);
-    assert.equal(events_approvals[0].args.value, 50);
+
+    // it should emit a `Approval` event
+    let events = await watcher.get();
+    assert.equal(events[0].args.owner, accounts[0]);
+    assert.equal(events[0].args.spender, accounts[2]);
+    assert.equal(events[0].args.value, 50);
+
     assert.equal(50, await coin.allowance(accounts[0], accounts[2]));
 
     // and another one
-    await coin.approve(accounts[3], 30);
-    events_approvals = await watcher_approval.get();
-    assert.equal(events_approvals[0].args.owner, accounts[0]);
-    assert.equal(events_approvals[0].args.spender, accounts[3]);
-    assert.equal(events_approvals[0].args.value, 30);
-    assert.equal(30, await coin.allowance(accounts[0], accounts[3]));
+    await coin.approve(accounts[3], 5);
+
+    events = await watcher.get();
+    assert.equal(events[0].args.owner, accounts[0]);
+    assert.equal(events[0].args.spender, accounts[3]);
+    assert.equal(events[0].args.value, 5);
+
+    assert.equal(5, await coin.allowance(accounts[0], accounts[3]));
+  });
+
+  it("allows transfering from the allowance", async () => {
+    const coin = await basicCoin();
+    const watcher = coin.Transfer();
 
     // we can transfer by allowance
     await coin.transferFrom(accounts[0], accounts[5], 1, { from: accounts[2] });
@@ -59,13 +102,47 @@ contract("BasicCoin", accounts => {
 
     // but not more than the owner has
     await assertThrowsAsync(
-      () => coin.transferFrom(accounts[0], accounts[5], 20, { from: accounts[3] }),
+      () => coin.transferFrom(accounts[0], accounts[2], 20, { from: accounts[3] }),
       "revert",
     );
 
     // we can not transfer when we don't have an allowance
     await assertThrowsAsync(
-      () => coin.transferFrom(accounts[0], accounts[5], 20, { from: accounts[9] }),
+      () => coin.transferFrom(accounts[0], accounts[5], 5, { from: accounts[9] }),
+      "revert",
+    );
+  });
+
+  it("should allow the owner of the coin to transfer ownership", async () => {
+    const coin = await basicCoin();
+    const watcher = coin.NewOwner();
+
+    // only the owner of the coin can transfer ownership
+    await assertThrowsAsync(
+      () => coin.setOwner(accounts[1], { from: accounts[1] }),
+      "revert",
+    );
+
+    let owner = await coin.owner();
+    assert.equal(owner, accounts[0]);
+
+    // we successfully transfer ownership of the coin
+    await coin.setOwner(accounts[1]);
+
+    // the `owner` should point to the new owner
+    owner = await coin.owner();
+    assert.equal(owner, accounts[1]);
+
+    // it should emit a `NewOwner` event
+    const events = await watcher.get();
+
+    assert.equal(events.length, 1);
+    assert.equal(events[0].args.old, accounts[0]);
+    assert.equal(events[0].args.current, accounts[1]);
+
+    // the old owner can no longer set a new owner
+    await assertThrowsAsync(
+      () => coin.setOwner(accounts[0], { from: accounts[0] }),
       "revert",
     );
   });
