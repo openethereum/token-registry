@@ -26,6 +26,7 @@ contract TokenReg is Owned {
 		uint base;
 		string name;
 		address owner;
+		bool deleted;
 		mapping (bytes32 => bytes32) meta;
 	}
 
@@ -56,6 +57,11 @@ contract TokenReg is Owned {
 	modifier whenHasTla(string _tla) {
 		if (mapFromTLA[_tla] == 0)
 			return;
+		_;
+	}
+
+	modifier whenToken(uint _id) {
+		require(!tokens[_id].deleted);
 		_;
 	}
 
@@ -104,7 +110,8 @@ contract TokenReg is Owned {
 			_tla,
 			_base,
 			_name,
-			_owner));
+			_owner,
+			false));
 		mapFromAddress[_addr] = tokens.length;
 		mapFromTLA[_tla] = tokens.length;
 		emit Registered(
@@ -112,22 +119,23 @@ contract TokenReg is Owned {
 			tokens.length - 1,
 			_addr,
 			_name);
+		tokenCount = tokenCount + 1;
 		return true;
 	}
 
-	function unregister(uint _id) onlyOwner public {
+	function unregister(uint _id) whenToken(_id) onlyOwner public {
 		emit Unregistered(tokens[_id].tla, _id);
 		delete mapFromAddress[tokens[_id].addr];
 		delete mapFromTLA[tokens[_id].tla];
-		delete tokens[_id];
+		tokens[_id].deleted = true;
+		tokenCount = tokenCount - 1;
 	}
 
 	function setFee(uint _fee) onlyOwner public {
 		fee = _fee;
 	}
 
-	function tokenCount() view public returns (uint) { return tokens.length; }
-	function token(uint _id) view public returns (address addr, string tla, uint base, string name, address owner) {
+	function token(uint _id) whenToken(_id) view public returns (address addr, string tla, uint base, string name, address owner) {
 		Token storage t = tokens[_id];
 		addr = t.addr;
 		tla = t.tla;
@@ -136,7 +144,11 @@ contract TokenReg is Owned {
 		owner = t.owner;
 	}
 
-	function fromAddress(address _addr) view public returns (uint id, string tla, uint base, string name, address owner) {
+	function fromAddress(address _addr)
+		whenToken(mapFromAddress[_addr] - 1)
+		view public
+		returns (uint id, string tla, uint base, string name, address owner)
+	{
 		id = mapFromAddress[_addr] - 1;
 		Token storage t = tokens[id];
 		tla = t.tla;
@@ -145,7 +157,11 @@ contract TokenReg is Owned {
 		owner = t.owner;
 	}
 
-	function fromTLA(string _tla) view public returns (uint id, address addr, uint base, string name, address owner) {
+	function fromTLA(string _tla)
+		whenToken(mapFromTLA[_tla] - 1)
+		view public
+		returns (uint id, address addr, uint base, string name, address owner)
+	{
 		id = mapFromTLA[_tla] - 1;
 		Token storage t = tokens[id];
 		addr = t.addr;
@@ -154,11 +170,11 @@ contract TokenReg is Owned {
 		owner = t.owner;
 	}
 
-	function meta(uint _id, bytes32 _key) view public returns (bytes32) {
+	function meta(uint _id, bytes32 _key) whenToken(_id) view public returns (bytes32) {
 		return tokens[_id].meta[_key];
 	}
 
-	function setMeta(uint _id, bytes32 _key, bytes32 _value) onlyTokenOwner(_id) public {
+	function setMeta(uint _id, bytes32 _key, bytes32 _value) whenToken(_id) onlyTokenOwner(_id) public {
 		tokens[_id].meta[_key] = _value;
 		emit MetaChanged(_id, _key, _value);
 	}
@@ -171,4 +187,5 @@ contract TokenReg is Owned {
 	mapping (string => uint) mapFromTLA;
 	Token[] tokens;
 	uint public fee = 1 ether;
+	uint public tokenCount = 0;
 }
