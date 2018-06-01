@@ -63,12 +63,6 @@ contract TokenReg is Owned {
 		_;
 	}
 
-	modifier whenHasTla(string _tla) {
-		if (mapFromTLA[_tla] == 0)
-			return;
-		_;
-	}
-
 	modifier whenToken(uint _id) {
 		require(!tokens[_id].deleted);
 		_;
