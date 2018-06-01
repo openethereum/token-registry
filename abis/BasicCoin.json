@@ -71,11 +71,6 @@
     "type": "constructor"
   },
   {
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "fallback"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -135,25 +130,6 @@
     ],
     "name": "NewOwner",
     "type": "event"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "_who",
-        "type": "address"
-      }
-    ],
-    "name": "balanceOf",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
   },
   {
     "constant": false,
@@ -241,6 +217,25 @@
       }
     ],
     "name": "allowance",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_who",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
     "outputs": [
       {
         "name": "",
