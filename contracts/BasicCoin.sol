@@ -73,11 +73,6 @@ contract BasicCoin is Owned, Token {
 		accounts[_owner].balance = totalSupply;
 	}
 
-	// no default function, simple contract only, entry-level users
-	function() public {
-		revert();
-	}
-
 	// balance of a specific address
 	function balanceOf(address _who)
 		public
