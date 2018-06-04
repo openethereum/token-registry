@@ -81,55 +81,49 @@
     "type": "event"
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "count",
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_totalSupply",
+        "type": "uint256"
+      },
+      {
+        "name": "_tla",
+        "type": "string"
+      },
+      {
+        "name": "_name",
+        "type": "string"
+      },
+      {
+        "name": "_tokenreg",
+        "type": "address"
+      }
+    ],
+    "name": "deploy",
     "outputs": [
       {
         "name": "",
-        "type": "uint256"
+        "type": "bool"
       }
     ],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "drain",
+    "outputs": [],
     "payable": false,
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "constant": true,
-    "inputs": [
-      {
-        "name": "_index",
-        "type": "uint256"
-      }
-    ],
-    "name": "get",
-    "outputs": [
-      {
-        "name": "coin",
-        "type": "address"
-      },
-      {
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "name": "tokenreg",
-        "type": "address"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "_owner",
-        "type": "address"
-      }
-    ],
-    "name": "countByOwner",
+    "inputs": [],
+    "name": "count",
     "outputs": [
       {
         "name": "",
@@ -172,43 +166,49 @@
     "type": "function"
   },
   {
-    "constant": false,
+    "constant": true,
     "inputs": [
       {
-        "name": "_totalSupply",
-        "type": "uint256"
-      },
-      {
-        "name": "_tla",
-        "type": "string"
-      },
-      {
-        "name": "_name",
-        "type": "string"
-      },
-      {
-        "name": "_tokenreg",
+        "name": "_owner",
         "type": "address"
       }
     ],
-    "name": "deploy",
+    "name": "countByOwner",
     "outputs": [
       {
         "name": "",
-        "type": "bool"
+        "type": "uint256"
       }
     ],
-    "payable": true,
-    "stateMutability": "payable",
+    "payable": false,
+    "stateMutability": "view",
     "type": "function"
   },
   {
-    "constant": false,
-    "inputs": [],
-    "name": "drain",
-    "outputs": [],
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_index",
+        "type": "uint256"
+      }
+    ],
+    "name": "get",
+    "outputs": [
+      {
+        "name": "coin",
+        "type": "address"
+      },
+      {
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "name": "tokenreg",
+        "type": "address"
+      }
+    ],
     "payable": false,
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   }
 ]

@@ -14,7 +14,7 @@
 //! See the License for the specific language governing permissions and
 //! limitations under the License.
 
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.22;
 
 import "./Owned.sol";
 
@@ -81,7 +81,7 @@ contract TokenReg is Owned {
 		uint _base,
 		string _name
 	)
-		public
+		external
 		payable
 		returns (bool)
 	{
@@ -92,6 +92,110 @@ contract TokenReg is Owned {
 			_name,
 			msg.sender
 		);
+	}
+
+	function unregister(uint _id)
+		external
+		whenToken(_id)
+		onlyOwner
+	{
+		emit Unregistered(tokens[_id].tla, _id);
+		delete mapFromAddress[tokens[_id].addr];
+		delete mapFromTLA[tokens[_id].tla];
+		tokens[_id].deleted = true;
+		tokenCount = tokenCount - 1;
+	}
+
+	function setFee(uint _fee)
+		external
+		onlyOwner
+	{
+		fee = _fee;
+	}
+
+	function setMeta(uint _id, bytes32 _key, bytes32 _value)
+		external
+		whenToken(_id)
+		onlyTokenOwner(_id)
+	{
+		tokens[_id].meta[_key] = _value;
+		emit MetaChanged(_id, _key, _value);
+	}
+
+	function drain()
+		external
+		onlyOwner
+	{
+		msg.sender.transfer(address(this).balance);
+	}
+
+	function token(uint _id)
+		external
+		view
+		whenToken(_id)
+		returns (
+			address addr,
+			string tla,
+			uint base,
+			string name,
+			address owner
+		)
+	{
+		Token storage t = tokens[_id];
+		addr = t.addr;
+		tla = t.tla;
+		base = t.base;
+		name = t.name;
+		owner = t.owner;
+	}
+
+	function fromAddress(address _addr)
+		external
+		view
+		whenToken(mapFromAddress[_addr] - 1)
+		returns (
+			uint id,
+			string tla,
+			uint base,
+			string name,
+			address owner
+		)
+	{
+		id = mapFromAddress[_addr] - 1;
+		Token storage t = tokens[id];
+		tla = t.tla;
+		base = t.base;
+		name = t.name;
+		owner = t.owner;
+	}
+
+	function fromTLA(string _tla)
+		external
+		view
+		whenToken(mapFromTLA[_tla] - 1)
+		returns (
+			uint id,
+			address addr,
+			uint base,
+			string name,
+			address owner
+		)
+	{
+		id = mapFromTLA[_tla] - 1;
+		Token storage t = tokens[id];
+		addr = t.addr;
+		base = t.base;
+		name = t.name;
+		owner = t.owner;
+	}
+
+	function meta(uint _id, bytes32 _key)
+		external
+		view
+		whenToken(_id)
+		returns (bytes32)
+	{
+		return tokens[_id].meta[_key];
 	}
 
 	function registerAs(
@@ -130,91 +234,5 @@ contract TokenReg is Owned {
 
 		tokenCount = tokenCount + 1;
 		return true;
-	}
-
-	function unregister(uint _id)
-		public
-		whenToken(_id)
-		onlyOwner
-	{
-		emit Unregistered(tokens[_id].tla, _id);
-		delete mapFromAddress[tokens[_id].addr];
-		delete mapFromTLA[tokens[_id].tla];
-		tokens[_id].deleted = true;
-		tokenCount = tokenCount - 1;
-	}
-
-	function setFee(uint _fee)
-		public
-		onlyOwner
-	{
-		fee = _fee;
-	}
-
-	function token(uint _id)
-		public
-		whenToken(_id)
-		view
-		returns (address addr, string tla, uint base, string name, address owner)
-	{
-		Token storage t = tokens[_id];
-		addr = t.addr;
-		tla = t.tla;
-		base = t.base;
-		name = t.name;
-		owner = t.owner;
-	}
-
-	function fromAddress(address _addr)
-		public
-		whenToken(mapFromAddress[_addr] - 1)
-		view
-		returns (uint id, string tla, uint base, string name, address owner)
-	{
-		id = mapFromAddress[_addr] - 1;
-		Token storage t = tokens[id];
-		tla = t.tla;
-		base = t.base;
-		name = t.name;
-		owner = t.owner;
-	}
-
-	function fromTLA(string _tla)
-		public
-		whenToken(mapFromTLA[_tla] - 1)
-		view
-		returns (uint id, address addr, uint base, string name, address owner)
-	{
-		id = mapFromTLA[_tla] - 1;
-		Token storage t = tokens[id];
-		addr = t.addr;
-		base = t.base;
-		name = t.name;
-		owner = t.owner;
-	}
-
-	function meta(uint _id, bytes32 _key)
-		public
-		whenToken(_id)
-		view
-		returns (bytes32)
-	{
-		return tokens[_id].meta[_key];
-	}
-
-	function setMeta(uint _id, bytes32 _key, bytes32 _value)
-		whenToken(_id)
-		onlyTokenOwner(_id)
-		public
-	{
-		tokens[_id].meta[_key] = _value;
-		emit MetaChanged(_id, _key, _value);
-	}
-
-	function drain()
-		public
-		onlyOwner
-	{
-		msg.sender.transfer(address(this).balance);
 	}
 }

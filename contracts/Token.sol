@@ -14,15 +14,32 @@
 //! See the License for the specific language governing permissions and
 //! limitations under the License.
 
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.22;
+
 
 interface Token {
 	event Transfer(address indexed from, address indexed to, uint256 value);
 	event Approval(address indexed owner, address indexed spender, uint256 value);
 
-	function balanceOf(address _owner) view external returns (uint256 balance);
-	function transfer(address _to, uint256 _value) external returns (bool success);
-	function transferFrom(address _from, address _to, uint256 _value) external returns (bool success);
-	function approve(address _spender, uint256 _value) external returns (bool success);
-	function allowance(address _owner, address _spender) view external returns (uint256 remaining);
+	function transfer(address _to, uint256 _value)
+		external
+		returns (bool success);
+
+	function transferFrom(address _from, address _to, uint256 _value)
+		external
+		returns (bool success);
+
+	function approve(address _spender, uint256 _value)
+		external
+		returns (bool success);
+
+	function allowance(address _owner, address _spender)
+		external
+		view
+		returns (uint256 remaining);
+
+	function balanceOf(address _owner)
+		external
+		view
+		returns (uint256 balance);
 }
